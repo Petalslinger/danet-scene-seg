@@ -6,6 +6,7 @@ import csv
 import json
 import os
 import random
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -67,12 +68,21 @@ class AverageMeter:
 
 
 class CSVLogger:
-    """追加写 CSV，文件不存在时写表头；字段顺序由第一次写入决定。"""
+    """追加写 CSV，文件不存在时写表头；字段顺序由第一次写入决定。
 
-    def __init__(self, path: str | Path):
+    fresh=True 时先把已有的同目录日志改名备份（`train_log.<时间戳>.csv`），
+    再从头写：同一个输出目录里重跑训练，旧记录不会和新记录混在一张表里。
+    """
+
+    def __init__(self, path: str | Path, fresh: bool = False):
         self.path = Path(path)
         ensure_dir(self.path.parent)
         self.fieldnames: Optional[list] = None
+        if fresh and self.path.exists() and self.path.stat().st_size > 0:
+            stamp = time.strftime("%Y%m%d-%H%M%S", time.localtime(self.path.stat().st_mtime))
+            backup = self.path.with_name(f"{self.path.stem}.{stamp}{self.path.suffix}")
+            if not backup.exists():
+                self.path.replace(backup)
 
     def log(self, row: Dict[str, Any]) -> None:
         if self.fieldnames is None:

@@ -182,7 +182,7 @@ def main() -> None:
         best_miou = float(ckpt.get("best_miou", -1.0))
         print(f"从 {cfg.resume} 恢复：epoch={start_epoch} it={iteration} best_miou={best_miou:.4f}")
 
-    logger = CSVLogger(out_dir / "train_log.csv")
+    logger = CSVLogger(out_dir / "train_log.csv", fresh=not cfg.resume)
     start_time = time.perf_counter()
     last_metrics = None
 
