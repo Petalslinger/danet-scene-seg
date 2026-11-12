@@ -13,11 +13,17 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 
-import numpy as np
-import torch
+# Anaconda 的 Library/bin 里有一份 MKL 带的 libiomp5md.dll，torch 自己也带一份；
+# 两者同时被加载时 OpenMP 会直接 abort（OMP: Error #15）。这个变量只影响
+# “检测到重复 OpenMP 时是否继续”，不改变计算结果，可视化场景下是安全的。
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -130,7 +136,8 @@ def main() -> None:
     ids = args.ids if args.ids else dataset.ids[: args.num]
     unknown = [i for i in ids if i not in dataset.ids]
     if unknown:
-        raise SystemExit(f"这些 id 不在 {args.split} 里：{unknown}")
+        examples = " ".join(dataset.ids[:5])
+        raise SystemExit(f"这些 id 不在 {args.split} 里：{unknown}（{args.split} 可用示例：{examples}）")
 
     out_dir = ensure_dir(args.out_dir)
     has_pam = cfg.attention in ("both", "pam")

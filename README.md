@@ -344,8 +344,7 @@ python scripts/evaluate.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth     
 python scripts/visualize.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth --mode triple
 
 # PAM 热力图 + CAM 通道亲和矩阵（指定具体图片）
-python scripts/visualize.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth --mode all \
-    --ids 2007_000032 2007_000129
+python scripts/visualize.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth --mode all --ids 2007_000033 2007_000129
 
 # 单独模式
 python scripts/visualize.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth --mode pam --num 2
@@ -353,6 +352,10 @@ python scripts/visualize.py --ckpt outputs/danet_resnet50_both/ckpt_best.pth --m
 ```
 
 图片写到 `figures/`：`triple_<id>.png`、`pam_<id>.png`、`cam_<id>.png`（dpi 200）。
+
+> `--ids` 只能填 val 里的图（想要 train 的图就加 `--split train`）；填了不在该 split 的 id 会直接提示并给出可用示例。
+>
+> 如果报 `OMP: Error #15 ... libiomp5md.dll already initialized`：Anaconda 的 `Library/bin` 和 torch 各带一份 OpenMP，画图时两份都被加载就会 abort。`visualize.py` 已在导入 torch 前设置 `KMP_DUPLICATE_LIB_OK=TRUE`，一般不会再出现；你自己写的新脚本遇到时，先在 PowerShell 里 `$env:KMP_DUPLICATE_LIB_OK="TRUE"` 再运行。
 
 ---
 
