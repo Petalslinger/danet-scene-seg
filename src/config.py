@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, fields
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from .models.danet import DANetConfig
 
@@ -43,6 +43,7 @@ class TrainConfig:
     val_interval: int = 1
     save_interval: int = 5
     log_interval: int = 20
+    resume: Optional[str] = None   # 从 ckpt_last.pth 继续训练
 
     # ------------------------------------------------------------------ #
     def validate(self) -> None:

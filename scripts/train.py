@@ -89,6 +89,7 @@ def parse_args() -> TrainConfig:
         val_interval=args.val_interval,
         save_interval=args.save_interval,
         log_interval=args.log_interval,
+        resume=args.resume,
     )
 
 
