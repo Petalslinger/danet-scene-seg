@@ -28,7 +28,7 @@ class TrainConfig:
 
     # ---------------- 优化 ----------------
     epochs: int = 50
-    lr: float = 1e-3
+    lr: float = 1e-2
     momentum: float = 0.9
     weight_decay: float = 1e-4
     poly_power: float = 0.9

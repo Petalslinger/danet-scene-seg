@@ -93,7 +93,7 @@
 | 超参 | 值 |
 |---|---|
 | optimizer | SGD, momentum 0.9, weight decay 1e-4 |
-| lr | 0.001，poly 衰减 $(1-\frac{iter}{max})^0.9$ |
+| lr | 0.01，poly 衰减 $(1-\frac{iter}{max})^0.9$ |
 | batch size | 8（512 crop，AMP 混合精度） |
 | epochs | 50 |
 | loss | 逐像素交叉熵（ignore_index=255），可选加 class weight |
@@ -312,13 +312,13 @@ python scripts/smoke_test.py --size 256 --batch 2
 | D 完整 DANet | `--attention both` | `outputs/danet_resnet50_both/` |
 
 ```bash
-python scripts/train.py --attention none  --epochs 50 --lr 0.01   # A baseline
-python scripts/train.py --attention pam   --epochs 50 --lr 0.01   # B
-python scripts/train.py --attention cam   --epochs 50 --lr 0.01   # C
-python scripts/train.py --attention both  --epochs 50 --lr 0.01   # D 完整 DANet
+python scripts/train.py --attention none  --epochs 50   # A baseline
+python scripts/train.py --attention pam   --epochs 50   # B
+python scripts/train.py --attention cam   --epochs 50   # C
+python scripts/train.py --attention both  --epochs 50   # D 完整 DANet
 ```
 
-> **必须显式写 `--lr 0.01`**。默认的 0.001 在这套设置（batch 8、crop 512、50 epoch、poly 衰减）下有效步长太小，四条管线都会欠拟合：实测 baseline / PAM / CAM / both 的 val mIoU 只有 15.97% / 14.14% / 14.73% / 16.03%，用 ckpt_best 在训练集自己的 12 张图上评也只有 10.6%，backbone 的 conv1 相对预训练权重只变化了 0.98%。同一个模型把 lr 改成 0.01 后，3 个 epoch 就到 12.5%（原设置第 3 轮约 5%），8 张图过拟合实验 120 iter 就能到 mIoU 0.75。所以训练命令里请保留 `--lr 0.01`。
+> 学习率默认已经是 `0.01`，不用再传 `--lr`。早期版本用的是 0.001，在这套设置（batch 8、crop 512、50 epoch、poly 衰减）下有效步长太小，四条管线都会欠拟合：实测 baseline / PAM / CAM / both 的 val mIoU 只有 15.97% / 14.14% / 14.73% / 16.03%，用 ckpt_best 在训练集自己的 12 张图上评也只有 10.6%，backbone 的 conv1 相对预训练权重只变化了 0.98%。改成 0.01 后，3 个 epoch 就到 12.5%（原设置第 3 轮约 5%），8 张图过拟合实验 120 iter 就能到 mIoU 0.75。
 
 - 显存不够：8 GB 卡（如 RTX 4060 Laptop）先试 `--batch-size 4`，仍 OOM 再 `--crop-size 384 --batch-size 4`；512 crop + batch 8 基本放不下（PAM 的 N×N 注意力在 512 输入时是 4096²，单这一项就几百 MB）
 - 每个 epoch 有一条进度条（`epoch 3/50 [######----] 42.0% 2.31 it/s ETA 900s  loss=0.1234 lr=9.5e-04`），验证也有一条；不想要进度条就加 `--no-progress`
