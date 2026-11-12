@@ -276,13 +276,11 @@ data/VOCdevkit/VOC2012/
 ```bash
 conda activate machinelearn
 python -m pip uninstall -y torch torchvision
-python -m pip install --index-url https://download.pytorch.org/whl/cu126 ^
-    --extra-index-url https://pypi.org/simple ^
-    "torch==2.14.1+cu126" "torchvision==0.29.1+cu126"
+python -m pip install --index-url https://download.pytorch.org/whl/cu126 --extra-index-url https://pypi.org/simple "torch==2.14.1+cu126" "torchvision==0.29.1+cu126"
 python -c "import torch, torchvision; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
 ```
 
-期望输出 `2.14.1+cu126 12.6 True`（PowerShell 里把行尾 `^` 换成反引号，或直接写成一行）。
+期望输出 `2.14.1+cu126 12.6 True`（命令已写成一行，直接复制即可，不要拆行）。
 
 再确认 GPU 真能算：
 
