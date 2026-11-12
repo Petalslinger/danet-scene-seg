@@ -220,7 +220,8 @@
 **Windows（PowerShell，系统自带 `curl.exe` 和 `tar.exe`）**
 
 ```powershell
-cd D:\file_work\机器学习\期中考核\02-scene-segmentation
+# 以下命令都在项目根目录（含 README.md 的文件夹）执行，路径全部用相对路径
+# 快捷方式：在资源管理器里进入该目录，地址栏输入 powershell 回车，即可直接在此处打开
 New-Item -ItemType Directory -Force data | Out-Null
 curl.exe -L -C - -o data\VOCtrainval_11-May-2012.tar http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar
 tar -xf data\VOCtrainval_11-May-2012.tar -C data
