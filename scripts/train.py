@@ -64,6 +64,7 @@ def parse_args() -> TrainConfig:
     parser.add_argument("--val-interval", type=int, default=defaults.val_interval)
     parser.add_argument("--save-interval", type=int, default=defaults.save_interval)
     parser.add_argument("--log-interval", type=int, default=defaults.log_interval)
+    parser.add_argument("--no-progress", action="store_false", dest="progress", help="关闭终端进度条")
     parser.add_argument("--resume", default=None, help="从 ckpt_last.pth 继续训练")
     args = parser.parse_args()
 
@@ -89,6 +90,7 @@ def parse_args() -> TrainConfig:
         val_interval=args.val_interval,
         save_interval=args.save_interval,
         log_interval=args.log_interval,
+        progress=args.progress,
         resume=args.resume,
     )
 
@@ -196,6 +198,7 @@ def main() -> None:
             epoch=epoch + 1,
             start_iter=iteration,
             total_iters=total_iters,
+            progress=cfg.progress,
         )
         print(
             f"epoch {epoch + 1}/{cfg.epochs}  loss={stats['loss']:.4f}  "
@@ -204,7 +207,14 @@ def main() -> None:
 
         if (epoch + 1) % cfg.val_interval == 0 or (epoch + 1) == cfg.epochs:
             metrics = evaluate(
-                model, val_loader, cfg.num_classes, cfg.ignore_index, device, amp=amp_enabled
+                model,
+                val_loader,
+                cfg.num_classes,
+                cfg.ignore_index,
+                device,
+                amp=amp_enabled,
+                desc=f"val {epoch + 1}",
+                progress=cfg.progress,
             )
             last_metrics = metrics
             print(

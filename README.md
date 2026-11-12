@@ -289,6 +289,8 @@ python -c "import torch; x=torch.randn(2000,2000,device='cuda'); print((x@x).sum
 ```
 
 > 装完之后**不要**再跑 `pip install -r requirements.txt`，它会按 PyPI 把 torch 换回 CPU 版。
+>
+> 训练进度条用 `tqdm`（可选）：`python -m pip install tqdm`。不装也能跑，会自动退化成内置的简易进度条。
 
 ### 11.2 自检
 
@@ -317,6 +319,7 @@ python scripts/train.py --attention both  --epochs 50          # D 完整 DANet
 ```
 
 - 显存不够：8 GB 卡（如 RTX 4060 Laptop）先试 `--batch-size 4`，仍 OOM 再 `--crop-size 384 --batch-size 4`；512 crop + batch 8 基本放不下（PAM 的 N×N 注意力在 512 输入时是 4096²，单这一项就几百 MB）
+- 每个 epoch 有一条进度条（`epoch 3/50 [######----] 42.0% 2.31 it/s ETA 900s  loss=0.1234 lr=9.5e-04`），验证也有一条；不想要进度条就加 `--no-progress`
 - 想对齐官方 DANet 的 2048 通道：加 `--use-layer4`（更吃显存，速度约慢一半）
 - 中断了：`--resume outputs/danet_resnet50_both/ckpt_last.pth`
 - 每个 epoch 打印一次 val 指标；best 按 val mIoU 保存，日志在 `train_log.csv`

@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 
 from .metrics import SegmentationMetrics
+from .progress import make_bar
 from .utils import AverageMeter, poly_lr
 
 __all__ = ["train_one_epoch", "evaluate", "build_param_groups", "make_grad_scaler"]
@@ -50,6 +51,7 @@ def train_one_epoch(
     start_iter: int,
     total_iters: int,
     log_fn: Callable[[str], None] = print,
+    progress: bool = True,
 ) -> Tuple[Dict[str, float], int]:
     """返回 (平均损失字典, 结束时的全局迭代数)。"""
     model.train()
@@ -59,7 +61,11 @@ def train_one_epoch(
     iteration = start_iter
     epoch_start = time.perf_counter()
 
-    for batch in loader:
+    bar = make_bar(loader, total=len(loader), desc=f"epoch {epoch}/{cfg.epochs}", enabled=progress)
+    using_bar = bar is not loader
+    emit = bar.write if using_bar else log_fn
+
+    for batch in bar:
         images = batch["image"].to(device, non_blocking=True)
         targets = batch["mask"].to(device, non_blocking=True)
 
@@ -86,11 +92,17 @@ def train_one_epoch(
         for name, value in parts.items():
             meters.setdefault(name, AverageMeter()).update(value.item(), n=images.size(0))
 
+        if using_bar:
+            bar.set_postfix(loss=f"{meters['loss'].avg:.4f}", lr=f"{lr:.1e}")
+
         if cfg.log_interval > 0 and (iteration - start_iter) % cfg.log_interval == 0:
             detail = " ".join(f"{k}={m.avg:.4f}" for k, m in meters.items())
-            log_fn(f"  epoch {epoch} it {iteration} lr {lr:.2e} {detail}")
+            emit(f"  epoch {epoch} it {iteration} lr {lr:.2e} {detail}")
 
         iteration += 1
+
+    if using_bar:
+        bar.close()
 
     elapsed = time.perf_counter() - epoch_start
     stats = {k: v.avg for k, v in meters.items()}
@@ -107,17 +119,25 @@ def evaluate(
     ignore_index: int,
     device: torch.device,
     amp: bool = True,
+    desc: str = "val",
+    progress: bool = True,
 ) -> Dict[str, Any]:
     """跑完一遍验证集，返回 mIoU / PA / MA / 逐类 IoU。"""
     model.eval()
     metrics = SegmentationMetrics(num_classes=num_classes, ignore_index=ignore_index)
     amp_enabled = bool(amp and device.type == "cuda")
 
-    for batch in loader:
+    bar = make_bar(loader, total=len(loader), desc=desc, enabled=progress)
+    using_bar = bar is not loader
+
+    for batch in bar:
         images = batch["image"].to(device, non_blocking=True)
         targets = batch["mask"].to(device, non_blocking=True)
         with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
             logits = model(images).logits
         metrics.update(logits.argmax(dim=1), targets)
+
+    if using_bar:
+        bar.close()
 
     return metrics.compute()

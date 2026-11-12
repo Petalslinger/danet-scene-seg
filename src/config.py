@@ -43,6 +43,7 @@ class TrainConfig:
     val_interval: int = 1
     save_interval: int = 5
     log_interval: int = 20
+    progress: bool = True          # 终端进度条（--no-progress 关闭）
     resume: Optional[str] = None   # 从 ckpt_last.pth 继续训练
 
     # ------------------------------------------------------------------ #
