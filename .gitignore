@@ -1,0 +1,36 @@
+# ---------------- 数据集（约 2 GB，按 README §10 自行下载） ----------------
+# 注意用 /data/ 锚定根目录，否则会把 src/data/ 一起忽略掉
+/data/
+
+# ---------------- 训练产物：权重、日志、指标 CSV ----------------
+/outputs/
+*.pth
+*.pt
+*.ckpt
+
+# ---------------- Python ----------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---------------- 虚拟环境 ----------------
+.venv/
+venv/
+env/
+
+# ---------------- 压缩包（数据集 tar 等） ----------------
+*.tar
+*.tar.gz
+*.zip
+
+# ---------------- 编辑器 / 系统 ----------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# figures/ 不忽略：报告用的图（三联图、热力图）建议入库，
+# 这样 GitHub 上 README 也能直接引用。
