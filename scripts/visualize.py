@@ -123,6 +123,7 @@ def main() -> None:
 
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+        from matplotlib.colors import LogNorm
     except ImportError:
         raise SystemExit("需要 matplotlib：pip install matplotlib")
 
@@ -203,12 +204,16 @@ def main() -> None:
             attn = out.attn.get("cam")
             if attn is not None:
                 matrix = attn[0].cpu().numpy()
+                # softmax 在 256 个通道上很尖锐（多数行只有一个接近 1 的峰），
+                # 线性色标下整张图几乎全暗；用对数色标把 1e-6~1e-2 的弱亲和也显示出来。
+                shown = np.clip(matrix, 1e-6, 1.0)
                 fig, ax = plt.subplots(figsize=(6, 5))
-                im = ax.imshow(matrix, cmap="viridis")
-                ax.set_title("CAM channel affinity (C x C)")
+                im = ax.imshow(shown, cmap="viridis", norm=LogNorm(vmin=1e-6, vmax=1.0))
+                ax.set_title("CAM channel affinity (C x C, log scale)")
                 ax.set_xlabel("key channel")
                 ax.set_ylabel("query channel")
-                fig.colorbar(im, ax=ax, fraction=0.046)
+                cbar = fig.colorbar(im, ax=ax, fraction=0.046)
+                cbar.set_label("affinity")
                 fig.tight_layout()
                 path = out_dir / f"cam_{image_id}.png"
                 fig.savefig(path, dpi=200, bbox_inches="tight")
